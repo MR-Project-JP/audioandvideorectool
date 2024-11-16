@@ -1,4 +1,4 @@
-<html><head><base href="." target="_blank">
+<html><head><base href=".">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>動画再生・音声録音・原稿表示アプリ</title>
@@ -21,6 +21,7 @@
     width: 100%;
     min-height: 100vh;
     background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    position: relative;
   }
 
   .container {
@@ -58,6 +59,47 @@
     height: auto;
     max-height: 40vh;
     object-fit: contain;
+    /* Ensure it doesn't overflow on iOS devices */
+    max-width: 100%;
+  }
+
+  .custom-controls, .custom-audio-player {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    background-color: rgba(0, 0, 0, 0.7);
+    padding: 10px;
+    border-radius: 10px;
+    width: 100%;
+    margin-top: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+  }
+
+  .custom-controls button, .custom-audio-player button {
+    background: none;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    font-size: 18px;
+    transition: transform 0.2s;
+  }
+
+  .custom-controls button:hover, .custom-audio-player button:hover {
+    transform: scale(1.2);
+  }
+
+  .custom-controls input[type="range"], .custom-audio-player input[type="range"] {
+    width: 100px;
+    margin: 0 10px;
+  }
+
+  #seekBar {
+    flex-grow: 1;
+  }
+
+  #currentTime, #totalTime, .audio-time {
+    color: #fff;
+    font-size: 14px;
   }
 
   .button-group {
@@ -137,6 +179,20 @@
     max-height: 30vh;
   }
 
+  #pdfViewer {
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    padding-right: 15px;
+  }
+
+  #pdfViewer canvas {
+    display: block;
+    margin-bottom: 20px;
+    max-width: 100%;
+    height: auto;
+  }
+
   .file-upload {
     position: relative;
     overflow: hidden;
@@ -183,81 +239,51 @@
 
   #visualizerContainer {
     display: flex;
-    flex-direction: column;
-    gap: 15px;
+    justify-content: space-around;
+    align-items: center;
     margin-top: 15px;
+    height: 300px;
   }
 
   .visualizer-wrapper {
+    width: 250px;
+    height: 250px;
+    position: relative;
     display: flex;
-    flex-direction: column;
-    height: 100px;
+    flex-direction: column; /* Stacks canvas above label */
+    align-items: center;    /* Centers items horizontally */
+    margin: 20px;
   }
 
   .visualizer {
-    flex-grow: 1;
-    background-color: rgba(0, 0, 0, 0.3);
-    border-radius: 10px;
-    overflow: hidden;
-    position: relative;
+    width: 100%;
+    height: 100%;
   }
 
-  .visualizer-bar {
-    position: absolute;
-    bottom: 0;
-    transition: height 0.05s ease;
+  .visualizer-label {
+    margin-top: 10px; /* Adds space between visualizer and label */
+    font-size: 14px;  /* Ensures readability */
+    color: #fff;      /* Keeps the label visible against dark background */
   }
 
-  #videoVisualizer .visualizer-bar {
-    background-color: #e94560;
-  }
-
-  #micVisualizer .visualizer-bar {
-    background-color: #533483;
-  }
-
-  #recordingVisualizer .visualizer-bar {
-    background-color: #0f3460;
-  }
-
-  .frequency-scale {
-    height: 20px;
-    display: flex;
-    justify-content: space-between;
-    padding: 0 5px;
-    font-size: 10px;
-    color: rgba(255, 255, 255, 0.7);
-  }
-
-  .frequency-marker {
-    position: relative;
-    text-align: center;
-  }
-
-  .frequency-marker::before {
+  .visualizer-wrapper::before {
     content: '';
     position: absolute;
-    bottom: -5px;
-    left: 50%;
-    width: 1px;
-    height: 5px;
-    background-color: rgba(255, 255, 255, 0.5);
+    top: -5px;
+    left: -5px;
+    width: calc(100% + 10px);
+    height: calc(100% + 10px);
+    z-index: -1;
+    animation: rotateGradient 5s linear infinite;
   }
 
-  .glow {
-    position: absolute;
-    width: 150px;
-    height: 150px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(233, 69, 96, 0.3) 0%, rgba(233, 69, 96, 0) 70%);
-    filter: blur(30px);
-    opacity: 0.5;
-    animation: float 10s ease-in-out infinite;
-  }
-
-  @keyframes float {
-    0%, 100% { transform: translateY(0) scale(1); }
-    50% { transform: translateY(-30px) scale(1.1); }
+  @keyframes rotateGradient {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
   }
 
   .step {
@@ -337,6 +363,74 @@
     transform: scale(0.9);
   }
 
+  #projectCredit {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    font-size: 12px;
+    color: #1a1a2e;
+    opacity: 0.3;
+    pointer-events: none;
+  }
+
+  /* Modal background */
+  .modal {
+    display: none; /* Hidden by default */
+    position: fixed; 
+    z-index: 2000; /* Above other elements */
+    left: 0;
+    top: 0;
+    width: 100%; 
+    height: 100%; 
+    overflow: auto; 
+    background-color: rgba(0, 0, 0, 0.8); /* Black with opacity */
+  }
+
+  /* Modal content box */
+  .modal-content {
+    background-color: #16213e;
+    margin: 10% auto; /* 10% from the top and centered */
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%; 
+    max-width: 600px;
+    border-radius: 10px;
+    color: #fff;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    position: relative;
+  }
+
+  /* Close button */
+  .close-button {
+    color: #fff;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    cursor: pointer;
+    transition: color 0.3s;
+  }
+
+  .close-button:hover,
+  .close-button:focus {
+    color: #e94560;
+  }
+
+  /* Modal header */
+  .modal-content h2 {
+    margin-top: 0;
+    text-align: center;
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+  }
+
+  /* Modal paragraph */
+  .modal-content p {
+    font-size: 16px;
+    line-height: 1.6;
+  }
+
   @media (max-width: 767px) {
     .app-container {
       flex-direction: column;
@@ -360,7 +454,8 @@
     }
 
     .visualizer-wrapper {
-      height: 80px;
+      width: 200px;
+      height: 200px;
     }
 
     h2, h3 {
@@ -374,10 +469,6 @@
 
     #status, #scriptContent {
       font-size: 14px;
-    }
-
-    .frequency-scale {
-      font-size: 10px;
     }
 
     .instructions {
@@ -410,14 +501,6 @@
       width: 40%;
     }
 
-    #visualizerContainer {
-      flex-direction: row;
-    }
-
-    .visualizer-wrapper {
-      height: 150px;
-    }
-
     h2, h3 {
       font-size: 1.8rem;
     }
@@ -429,10 +512,6 @@
 
     #status, #scriptContent {
       font-size: 16px;
-    }
-
-    .frequency-scale {
-      font-size: 12px;
     }
 
     .instructions {
@@ -455,185 +534,291 @@
       display: none;
     }
   }
+
+  /* Add styles for the custom audio player */
+  .custom-audio-player {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background-color: rgba(0, 0, 0, 0.7);
+    padding: 10px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    width: 100%;
+    margin-top: 10px;
+  }
+
+  .audio-control-button {
+    background: rgba(0, 0, 0, 0.7);
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s, transform 0.2s;
+    display: flex;
+    align-items: center;
+    padding: 10px 15px;
+    border-radius: 8px;
+    margin: 5px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+  }
+
+  .audio-control-button i {
+    margin-right: 8px;
+    font-size: 18px;
+  }
+
+  .audio-control-button:hover {
+    background-color: #cf3f54;
+    transform: scale(1.05);
+  }
+
+  .audio-control-button:active {
+    transform: scale(0.95);
+  }
+
+  .audio-seek-bar, .audio-volume-bar {
+    flex-grow: 1;
+    height: 5px;
+    background: #444;
+    border-radius: 5px;
+    appearance: none;
+  }
+
+  .audio-seek-bar::-webkit-slider-thumb, .audio-volume-bar::-webkit-slider-thumb {
+    appearance: none;
+    width: 12px;
+    height: 12px;
+    background: #e94560;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+
+  .audio-time {
+    color: #fff;
+    font-size: 14px;
+  }
+
 </style>
 <script src="https://kit.fontawesome.com/your-font-awesome-kit.js" crossorigin="anonymous"></script>
-</head>
-<body>
-  <div class="app-container">
-    <div class="glow" style="top: 10%; left: 10%;"></div>
-    <div class="glow" style="top: 70%; right: 20%;"></div>
-    <div id="videoContainer" class="container">
-      <div id="mainContent">
-        <h2><i class="fas fa-film icon"></i>動画再生 & 音声録音</h2>
-        <div class="instructions">
-          <div class="step">
-            <div class="step-number">1</div>
-            <div>動画をアップロードしてください</div>
-          </div>
-          <div class="step">
-            <div class="step-number">2</div>
-            <div>マイクへのアクセスを確認してください</div>
-          </div>
-          <div class="step">
-            <div class="step-number">3</div>
-            <div>「再生 & 録音」ボタンを押して5秒後に録音を開始します</div>
-          </div>
-        </div>
-        <div class="button-group">
-          <label class="file-upload">
-            <i class="fas fa-upload icon"></i>動画をアップロード
-            <input type="file" id="videoUpload" accept="video/*">
-          </label>
-          <button id="micAccessButton"><i class="fas fa-microphone icon"></i>マイク確認</button>
-          <button id="playRecordButton" disabled class="pulse"><i class="fas fa-play icon"></i><i class="fas fa-microphone icon"></i>再生 & 録音</button>
-        </div>
-        <video id="videoPlayer" controls></video>
-        <div id="status"></div>
-        <h3><i class="fas fa-headphones icon"></i>録音した音声</h3>
-        <audio id="audioPlayer" controls></audio>
-      </div>
-      <div id="visualizerContainer">
-        <div class="visualizer-wrapper">
-          <div id="videoVisualizer" class="visualizer"></div>
-          <div class="frequency-scale">
-            <span class="frequency-marker">0Hz</span>
-            <span class="frequency-marker">2kHz</span>
-            <span class="frequency-marker">4kHz</span>
-            <span class="frequency-marker">6kHz</span>
-            <span class="frequency-marker">8kHz</span>
-            <span class="frequency-marker">10kHz</span>
-          </div>
-        </div>
-        <div class="visualizer-wrapper">
-          <div id="micVisualizer" class="visualizer"></div>
-          <div class="frequency-scale">
-            <span class="frequency-marker">0Hz</span>
-            <span class="frequency-marker">2kHz</span>
-            <span class="frequency-marker">4kHz</span>
-            <span class="frequency-marker">6kHz</span>
-            <span class="frequency-marker">8kHz</span>
-            <span class="frequency-marker">10kHz</span>
-          </div>
-        </div>
-        <div class="visualizer-wrapper">
-          <div id="recordingVisualizer" class="visualizer"></div>
-          <div class="frequency-scale">
-            <span class="frequency-marker">0Hz</span>
-            <span class="frequency-marker">2kHz</span>
-            <span class="frequency-marker">4kHz</span>
-            <span class="frequency-marker">6kHz</span>
-            <span class="frequency-marker">8kHz</span>
-            <span class="frequency-marker">10kHz</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div id="scriptContainer" class="container">
-      <h2><i class="fas fa-file-alt icon"></i>原稿表示</h2>
-      <div class="instructions">
-        <div class="step">
-          <div class="step-number">1</div>
-          <div>原稿ファイル（.txt）をアップロードしてください</div>
-        </div>
-        <div class="step">
-          <div class="step-number">2</div>
-          <div>アップロードした原稿が下に表示されます</div>
-        </div>
-      </div>
-      <label class="file-upload" style="margin-bottom: 15px;">
-        <i class="fas fa-upload icon"></i>原稿をアップロード
-        <input type="file" id="scriptUpload" accept=".txt">
-      </label>
-      <div id="scriptContent"></div>
-    </div>
-  </div>
-
-  <div id="countdown"></div>
-  <button id="floatingButton"><i class="fas fa-play"></i></button>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.9.359/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.19/mammoth.browser.min.js"></script>
 <script>
+// Define GM_addStyle function if not already defined
+if (typeof GM_addStyle === 'undefined') {
+  function GM_addStyle(css) {
+    const style = document.createElement('style');
+    style.type = 'text/css';
+    style.textContent = css;
+    document.head.appendChild(style);
+  }
+}
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.9.359/pdf.worker.min.js';
+
+// Attach Analyzers to the Global Window Object
+window.videoAnalyser = null;
+window.micAnalyser = null;
+window.recordingAnalyser = null;
+
+/**
+ * Creates a circular audio visualizer on the given canvas using the provided analyser.
+ * @param {HTMLCanvasElement} canvas - The canvas element to draw the visualizer on.
+ * @param {AnalyserNode} analyser - The AnalyserNode from the Web Audio API.
+ */
+function createCircularVisualizer(canvas, analyser) {
+  const ctx = canvas.getContext('2d');
+  const bufferLength = analyser.frequencyBinCount;
+  const dataArray = new Uint8Array(bufferLength);
+  const radius = canvas.width / 4;
+  const centerX = canvas.width / 2;
+  const centerY = canvas.height / 2;
+
+  function draw() {
+    requestAnimationFrame(draw);
+
+    analyser.getByteFrequencyData(dataArray);
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const bars = 60;
+    const step = Math.floor(bufferLength / bars);
+    const angleStep = (2 * Math.PI) / bars;
+
+    for (let i = 0; i < bars; i++) {
+      const value = dataArray[i * step] / 255;
+      const barHeight = radius * value;
+      const angle = i * angleStep;
+
+      const x = centerX + Math.cos(angle) * radius;
+      const y = centerY + Math.sin(angle) * radius;
+
+      const xEnd = centerX + Math.cos(angle) * (radius + barHeight);
+      const yEnd = centerY + Math.sin(angle) * (radius + barHeight);
+
+      const hue = (i / bars) * 360;
+
+      ctx.strokeStyle = `hsl(${hue}, 100%, 50%)`;
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(xEnd, yEnd);
+      ctx.stroke();
+    }
+  }
+
+  draw();
+}
+
+function initializeVisualizers() {
+  const videoCanvas = document.getElementById('videoVisualizer');
+  const micCanvas = document.getElementById('micVisualizer');
+  const recordingCanvas = document.getElementById('recordingVisualizer');
+
+  // Ensure canvases are sized correctly
+  [videoCanvas, micCanvas, recordingCanvas].forEach(canvas => {
+    canvas.width = canvas.parentElement.clientWidth;
+    canvas.height = canvas.parentElement.clientHeight;
+  });
+
+  if (window.videoAnalyser) {
+    createCircularVisualizer(videoCanvas, window.videoAnalyser);
+  }
+
+  if (window.micAnalyser) {
+    createCircularVisualizer(micCanvas, window.micAnalyser);
+  }
+
+  if (window.recordingAnalyser) {
+    createCircularVisualizer(recordingCanvas, window.recordingAnalyser);
+  }
+}
+
+function optimizeForMobile() {
+  const isMobile = window.innerWidth <= 767;
+  const appContainer = document.querySelector('.app-container');
+  const videoContainer = document.getElementById('videoContainer');
+  const scriptContainer = document.getElementById('scriptContainer');
+  const visualizerContainer = document.getElementById('visualizerContainer');
+
+  if (isMobile) {
+    videoPlayer.style.maxHeight = '30vh';
+    scriptContent.style.height = 'calc(50vh - 120px)';
+    
+    const leftPadding = window.getComputedStyle(videoContainer).paddingLeft;
+    videoContainer.style.paddingRight = leftPadding;
+    scriptContainer.style.paddingRight = leftPadding;
+
+    const containerWidth = `calc(100% - ${parseInt(leftPadding) * 2}px)`;
+    videoContainer.style.width = containerWidth;
+    scriptContainer.style.width = containerWidth;
+
+    videoContainer.style.margin = '0 auto';
+    scriptContainer.style.margin = '0 auto';
+
+    visualizerContainer.style.flexDirection = 'column';
+    visualizerContainer.style.height = 'auto';
+    document.querySelectorAll('.visualizer-wrapper').forEach(wrapper => {
+      wrapper.style.marginBottom = '20px';
+    });
+  } else {
+    videoPlayer.style.maxHeight = '50vh';
+    scriptContent.style.height = 'calc(100% - 120px)';
+    
+    videoContainer.style.paddingRight = '';
+    scriptContainer.style.paddingRight = '';
+    videoContainer.style.width = '60%';
+    scriptContainer.style.width = '40%';
+    videoContainer.style.margin = '';
+    scriptContainer.style.margin = '';
+
+    visualizerContainer.style.flexDirection = 'row';
+    visualizerContainer.style.height = '300px';
+    document.querySelectorAll('.visualizer-wrapper').forEach(wrapper => {
+      wrapper.style.marginBottom = '';
+    });
+  }
+
+  const canvases = document.querySelectorAll('.visualizer');
+  canvases.forEach(canvas => {
+    canvas.width = canvas.parentElement.clientWidth;
+    canvas.height = canvas.parentElement.clientHeight;
+  });
+
+  // Re-initialize visualizers after resizing
+  initializeVisualizers();
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   const videoUpload = document.getElementById('videoUpload');
   const videoPlayer = document.getElementById('videoPlayer');
   const micAccessButton = document.getElementById('micAccessButton');
   const playRecordButton = document.getElementById('playRecordButton');
+  const customPlayPauseButton = document.getElementById('customPlayPauseButton');
+  const customSeekBar = document.getElementById('customSeekBar');
+  const customCurrentTime = document.getElementById('customCurrentTime');
+  const customTotalTime = document.getElementById('customTotalTime');
+  const customMuteButton = document.getElementById('customMuteButton');
+  const customVolumeBar = document.getElementById('customVolumeBar');
   const floatingButton = document.getElementById('floatingButton');
   const status = document.getElementById('status');
   const scriptUpload = document.getElementById('scriptUpload');
   const scriptContent = document.getElementById('scriptContent');
-  const audioPlayer = document.getElementById('audioPlayer');
-  const videoVisualizer = document.getElementById('videoVisualizer');
-  const micVisualizer = document.getElementById('micVisualizer');
-  const recordingVisualizer = document.getElementById('recordingVisualizer');
   const countdownElement = document.getElementById('countdown');
+
+  const seekBar = document.getElementById('seekBar');
+  const currentTimeElement = document.getElementById('currentTime');
+  const totalTimeElement = document.getElementById('totalTime');
+  const muteButton = document.getElementById('muteButton');
+  const volumeBar = document.getElementById('volumeBar');
+
+  // Global variable for microphone stream
+  let micStream = null;
+
+  // Modal elements
+  const descriptionButton = document.getElementById('descriptionButton');
+  const descriptionModal = document.getElementById('descriptionModal');
+  const closeButton = document.querySelector('.close-button');
+
+  // New buttons for recorded audio
+  const downloadRecordedAudioButton = document.getElementById('downloadRecordedAudio');
 
   let audioContext;
   let mediaStreamSource;
   let recorder;
   let isRecording = false;
   let micAccessGranted = false;
-  let videoAnalyser, micAnalyser, recordingAnalyser;
+  let audioChunks = [];
+  let customAudio = new Audio();
+  let isCustomPlaying = false;
 
-  function createVisualizer(container, analyser) {
-    const bufferLength = analyser.frequencyBinCount;
-    const dataArray = new Uint8Array(bufferLength);
-    const barWidth = container.clientWidth / bufferLength;
-
-    // Remove existing bars
-    while (container.firstChild) {
-      container.removeChild(container.firstChild);
+  function initializeAudio() {
+    if (!audioContext) {
+      audioContext = new (window.AudioContext || window.webkitAudioContext)();
     }
 
-    for (let i = 0; i < bufferLength; i++) {
-      const bar = document.createElement('div');
-      bar.classList.add('visualizer-bar');
-      bar.style.left = i * barWidth + 'px';
-      bar.style.width = barWidth + 'px';
-      container.appendChild(bar);
+    // Initialize videoAnalyser if not already done
+    if (!window.videoAnalyser) {
+      const videoSource = audioContext.createMediaElementSource(videoPlayer);
+
+      window.videoAnalyser = audioContext.createAnalyser();
+      window.videoAnalyser.fftSize = 2048;
+
+      videoSource.connect(window.videoAnalyser);
+      window.videoAnalyser.connect(audioContext.destination);
     }
 
-    function updateVisualizer() {
-      analyser.getByteFrequencyData(dataArray);
-      const bars = container.getElementsByClassName('visualizer-bar');
-      for (let i = 0; i < bufferLength; i++) {
-        const height = dataArray[i] / 2;
-        bars[i].style.height = height + '%';
-      }
-      requestAnimationFrame(updateVisualizer);
+    // Initialize micAnalyser if not already done
+    if (micStream && !window.micAnalyser) {
+      window.micAnalyser = audioContext.createAnalyser();
+      window.micAnalyser.fftSize = 2048;
+      const micSource = audioContext.createMediaStreamSource(micStream);
+      micSource.connect(window.micAnalyser);
+      window.micAnalyser.connect(audioContext.destination);
     }
 
-    updateVisualizer();
+    initializeVisualizers();
   }
-
-  videoUpload.addEventListener('change', (event) => {
-    const file = event.target.files[0];
-    const videoURL = URL.createObjectURL(file);
-    videoPlayer.src = videoURL;
-    status.textContent = `動画「${file.name}」がアップロードされました。`;
-
-    videoPlayer.onloadedmetadata = () => {
-      if (!audioContext) {
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
-      }
-      const source = audioContext.createMediaElementSource(videoPlayer);
-      videoAnalyser = audioContext.createAnalyser();
-      videoAnalyser.fftSize = 256;
-      source.connect(videoAnalyser);
-      videoAnalyser.connect(audioContext.destination);
-      createVisualizer(videoVisualizer, videoAnalyser);
-    };
-  });
-
-  scriptUpload.addEventListener('change', (event) => {
-    const file = event.target.files[0];
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      scriptContent.textContent = e.target.result;
-      status.textContent = `原稿「${file.name}」が読み込まれました。`;
-    };
-    reader.readAsText(file);
-  });
 
   micAccessButton.addEventListener('click', async () => {
     try {
@@ -641,11 +826,121 @@ document.addEventListener('DOMContentLoaded', () => {
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
       }
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      micStream = stream;
       mediaStreamSource = audioContext.createMediaStreamSource(stream);
-      micAnalyser = audioContext.createAnalyser();
-      micAnalyser.fftSize = 256;
-      mediaStreamSource.connect(micAnalyser);
-      createVisualizer(micVisualizer, micAnalyser);
+      
+      // Initialize audio and visualizers after mic access is granted
+      initializeAudio(); // <-- Added line
+      
+      micAccessGranted = true;
+      status.textContent = 'マイクアクセスが許可されました。録音の準備ができました！';
+      micAccessButton.disabled = true;
+      playRecordButton.disabled = false;
+      playRecordButton.classList.add('pulse');
+      floatingButton.classList.add('pulse');
+    } catch (err) {
+      console.error('Error accessing the microphone:', err);
+      status.textContent = 'マイクへのアクセスが拒否されました。設定を確認してください。';
+    }
+  });
+
+  videoUpload.addEventListener('change', (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const videoURL = URL.createObjectURL(file);
+      videoPlayer.src = videoURL;
+      status.textContent = `動画「${file.name}」がアップロードされました。`;
+
+      videoPlayer.onloadedmetadata = () => {
+        totalTimeElement.textContent = `${Math.floor(videoPlayer.duration / 60)}:${Math.floor(videoPlayer.duration % 60) < 10 ? '0' : ''}${Math.floor(videoPlayer.duration % 60)}`;
+        initializeAudio(); // Ensure analyzers are initialized here
+      };
+    }
+  });
+
+  scriptUpload.addEventListener('change', (event) => {
+    const file = event.target.files[0];
+    const fileType = file.type;
+    const fileName = file.name;
+
+    if (fileType === 'text/plain') {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        scriptContent.textContent = e.target.result;
+        status.textContent = `原稿「${fileName}」が読み込まれました。`;
+        document.getElementById('pdfViewer').innerHTML = '';
+      };
+      reader.readAsText(file);
+    } else if (fileType === 'application/pdf') {
+      const fileReader = new FileReader();
+      fileReader.onload = function() {
+        const typedarray = new Uint8Array(this.result);
+        loadPDF(typedarray, fileName);
+      };
+      fileReader.readAsArrayBuffer(file);
+    } else if (fileType === 'application/msword' || fileType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+      handleDocFile(file, fileName);
+    } else {
+      status.textContent = 'サポートされていないファイル形式です。.txt、.pdf、.doc、または.docxファイルをアップロードしてください。';
+    }
+  });
+
+  function loadPDF(data, fileName) {
+    pdfjsLib.getDocument(data).promise.then(function(pdf) {
+      const pdfViewer = document.getElementById('pdfViewer');
+      pdfViewer.innerHTML = '';
+      scriptContent.innerHTML = '';
+
+      for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+        pdf.getPage(pageNum).then(function(page) {
+          const scale = 1.5;
+          const viewport = page.getViewport({ scale: scale });
+          const canvas = document.createElement('canvas');
+          const context = canvas.getContext('2d');
+          canvas.height = viewport.height;
+          canvas.width = viewport.width;
+
+          const renderContext = {
+            canvasContext: context,
+            viewport: viewport
+          };
+
+          page.render(renderContext);
+          pdfViewer.appendChild(canvas);
+        });
+      }
+      status.textContent = `原稿「${fileName}」が読み込まれました。`;
+    });
+  }
+
+  function handleDocFile(file, fileName) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      mammoth.extractRawText({arrayBuffer: e.target.result})
+        .then(function(result) {
+          scriptContent.textContent = result.value;
+          status.textContent = `原稿「${fileName}」が読み込まれました。`;
+          document.getElementById('pdfViewer').innerHTML = '';
+        })
+        .catch(function(error) {
+          console.error(error);
+          status.textContent = 'ファイルの読み込み中にエラーが発生しました。';
+        });
+    };
+    reader.readAsArrayBuffer(file);
+  }
+
+  micAccessButton.addEventListener('click', async () => {
+    try {
+      if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      micStream = stream;
+      mediaStreamSource = audioContext.createMediaStreamSource(stream);
+      
+      // Initialize audio and visualizers after mic access is granted
+      initializeAudio(); // <-- Added line
       
       micAccessGranted = true;
       status.textContent = 'マイクアクセスが許可されました。録音の準備ができました！';
@@ -692,40 +987,56 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function startRecording() {
-    if (!micAccessGranted) {
+    if (!micAccessGranted || !micStream) {
       status.textContent = 'まずマイクアクセスを確認してください。';
       return;
     }
 
-    recorder = new MediaRecorder(mediaStreamSource.mediaStream);
-    let audioChunks = [];
+    try {
+      recorder = new MediaRecorder(micStream);
+      audioChunks = [];
 
-    recorder.ondataavailable = (e) => {
-      audioChunks.push(e.data);
-    };
+      recorder.ondataavailable = (e) => {
+        audioChunks.push(e.data);
+      };
 
-    recorder.onstop = () => {
-      const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-      const audioUrl = URL.createObjectURL(audioBlob);
-      audioPlayer.src = audioUrl;
+      recorder.onstop = () => {
+        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+        const audioUrl = URL.createObjectURL(audioBlob);
+        customAudio.src = audioUrl;
 
-      // Set up recording visualizer
-      const audioSource = audioContext.createMediaElementSource(audioPlayer);
-      recordingAnalyser = audioContext.createAnalyser();
-      recordingAnalyser.fftSize = 256;
-      audioSource.connect(recordingAnalyser);
-      recordingAnalyser.connect(audioContext.destination);
-      createVisualizer(recordingVisualizer, recordingAnalyser);
-    };
+        // Update total duration once metadata is loaded
+        customAudio.addEventListener('loadedmetadata', () => {
+          customTotalTime.textContent = formatTime(customAudio.duration);
+          customSeekBar.max = Math.floor(customAudio.duration);
+        });
+      };
 
-    recorder.start();
-    videoPlayer.play();
-    isRecording = true;
-    playRecordButton.innerHTML = '<i class="fas fa-stop icon"></i>停止';
-    floatingButton.innerHTML = '<i class="fas fa-stop"></i>';
-    playRecordButton.classList.remove('pulse');
-    floatingButton.classList.remove('pulse');
-    status.textContent = '録音中...お話しください。';
+      recorder.start();
+
+      // Handle the promise returned by videoPlayer.play()
+      videoPlayer.play()
+        .then(() => {
+          isRecording = true;
+          playRecordButton.innerHTML = '<i class="fas fa-stop icon"></i>停止';
+          floatingButton.innerHTML = '<i class="fas fa-stop"></i>';
+          playRecordButton.classList.remove('pulse');
+          floatingButton.classList.remove('pulse');
+          status.textContent = '録音中...お話しください。';
+        })
+        .catch((error) => {
+          console.error('Error playing video:', error);
+          status.textContent = 'ビデオの再生中にエラーが発生しました。録音を開始できません。';
+          recorder.stop(); // Stop the recorder if play fails
+          isRecording = false;
+          playRecordButton.disabled = true; // Optionally disable the button
+          floatingButton.disabled = true;   // Optionally disable the floating button
+        });
+
+    } catch (error) {
+      console.error('Error starting the recorder:', error);
+      status.textContent = '録音の開始中にエラーが発生しました。';
+    }
   }
 
   function stopRecording() {
@@ -747,51 +1058,230 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // スマートフォンでの表示を最適化
-  function optimizeForMobile() {
-    const isMobile = window.innerWidth <= 767;
-    const appContainer = document.querySelector('.app-container');
-    const videoContainer = document.getElementById('videoContainer');
-    const scriptContainer = document.getElementById('scriptContainer');
-
-    if (isMobile) {
-      videoPlayer.style.maxHeight = '30vh';
-      scriptContent.style.height = 'calc(50vh - 120px)';
-      
-      // Add padding to the right side of the containers
-      const leftPadding = window.getComputedStyle(videoContainer).paddingLeft;
-      videoContainer.style.paddingRight = leftPadding;
-      scriptContainer.style.paddingRight = leftPadding;
-
-      // Adjust the width of the containers to account for the added padding
-      const containerWidth = `calc(100% - ${parseInt(leftPadding) * 2}px)`;
-      videoContainer.style.width = containerWidth;
-      scriptContainer.style.width = containerWidth;
-
-      // Center the content within the containers
-      videoContainer.style.margin = '0 auto';
-      scriptContainer.style.margin = '0 auto';
+  // Custom audio player controls
+  customPlayPauseButton.addEventListener('click', () => {
+    if (isCustomPlaying) {
+      customAudio.pause();
+      customPlayPauseButton.innerHTML = '<i class="fas fa-play"></i> 再生';
     } else {
-      videoPlayer.style.maxHeight = '50vh';
-      scriptContent.style.height = 'calc(100% - 120px)';
-      
-      // Reset styles for desktop view
-      videoContainer.style.paddingRight = '';
-      scriptContainer.style.paddingRight = '';
-      videoContainer.style.width = '60%';
-      scriptContainer.style.width = '40%';
-      videoContainer.style.margin = '';
-      scriptContainer.style.margin = '';
+      customAudio.play();
+      customPlayPauseButton.innerHTML = '<i class="fas fa-pause"></i> 一時停止';
+    }
+    isCustomPlaying = !isCustomPlaying;
+  });
+
+  // Update seek bar as audio plays
+  customAudio.addEventListener('timeupdate', () => {
+    customSeekBar.value = Math.floor(customAudio.currentTime);
+    customCurrentTime.textContent = formatTime(customAudio.currentTime);
+  });
+
+  // Seek audio
+  customSeekBar.addEventListener('input', () => {
+    customAudio.currentTime = customSeekBar.value;
+  });
+
+  // Mute/Unmute functionality
+  customMuteButton.addEventListener('click', () => {
+    customAudio.muted = !customAudio.muted;
+    customMuteButton.innerHTML = customAudio.muted ? '<i class="fas fa-volume-mute"></i> ミュート' : '<i class="fas fa-volume-up"></i> ミュート解除';
+  });
+
+  // Volume control
+  customVolumeBar.addEventListener('input', () => {
+    customAudio.volume = customVolumeBar.value;
+    if (customAudio.volume === 0) {
+      customAudio.muted = true;
+      customMuteButton.innerHTML = '<i class="fas fa-volume-mute"></i> ミュート';
+    } else {
+      customAudio.muted = false;
+      customMuteButton.innerHTML = '<i class="fas fa-volume-up"></i> ミュート解除';
+    }
+  });
+
+  // Function to download the recorded audio
+  downloadRecordedAudioButton.addEventListener('click', () => {
+    if (audioChunks.length === 0) {
+      status.textContent = '録音された音声がありません。';
+      return;
     }
 
-    // Adjust the visualizer container
-    const visualizerContainer = document.getElementById('visualizerContainer');
-    visualizerContainer.style.flexDirection = isMobile ? 'column' : 'row';
+    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+    const reader = new FileReader();
+
+    reader.onloadend = function() {
+      const dataUrl = reader.result;
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = dataUrl;
+      a.download = 'recorded_audio.wav';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      status.textContent = '音声がダウンロードされました。';
+    };
+
+    reader.readAsDataURL(audioBlob);
+  });
+
+  // Format time in mm:ss
+  function formatTime(seconds) {
+    const minutes = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
   }
+
+  // Ensure that when audio ends, the play button resets
+  customAudio.addEventListener('ended', () => {
+    isCustomPlaying = false;
+    customPlayPauseButton.innerHTML = '<i class="fas fa-play"></i> 再生';
+  });
+
+  // Update seek bar max when audio metadata is loaded
+  customAudio.addEventListener('loadedmetadata', () => {
+    customSeekBar.max = Math.floor(customAudio.duration);
+    customTotalTime.textContent = formatTime(customAudio.duration);
+  });
+
+  // Initialize total time display once metadata is loaded
+  videoPlayer.addEventListener('loadedmetadata', () => {
+    totalTimeElement.textContent = `${Math.floor(videoPlayer.duration / 60)}:${Math.floor(videoPlayer.duration % 60) < 10 ? '0' : ''}${Math.floor(videoPlayer.duration % 60)}`;
+  });
+
+  descriptionButton.addEventListener('click', () => {
+    descriptionModal.style.display = 'block';
+  });
+
+  closeButton.addEventListener('click', () => {
+    descriptionModal.style.display = 'none';
+  });
+
+  window.addEventListener('click', (event) => {
+    if (event.target == descriptionModal) {
+      descriptionModal.style.display = 'none';
+    }
+  });
 
   window.addEventListener('resize', optimizeForMobile);
   optimizeForMobile();
+
+  // Add touchstart event listeners for better compatibility with touch devices
+  document.getElementById('playRecordButton').addEventListener('touchstart', toggleRecording);
+  document.getElementById('floatingButton').addEventListener('touchstart', toggleRecording);
 });
 </script>
+<body>
+  <div class="app-container">
+    <div class="glow" style="top: 10%; left: 10%;"></div>
+    <div class="glow" style="top: 70%; right: 20%;"></div>
+    <div id="videoContainer" class="container">
+      <div id="mainContent">
+        <h2><i class="fas fa-film icon"></i>動画再生 & 音声録音</h2>
+        <div class="instructions">
+          <div class="step">
+            <div class="step-number">1</div>
+            <div>動画をアップロードしてください</div>
+          </div>
+          <div class="step">
+            <div class="step-number">2</div>
+            <div>マイクへのアクセスを確認してください</div>
+          </div>
+          <div class="step">
+            <div class="step-number">3</div>
+            <div>「再生 & 録音」ボタンを押して5秒後に録音を開始します</div>
+          </div>
+        </div>
+        <div class="button-group">
+          <label class="file-upload">
+            <i class="fas fa-upload icon"></i>動画をアップロード
+            <input type="file" id="videoUpload" accept="video/*">
+          </label>
+          <button id="micAccessButton"><i class="fas fa-microphone icon"></i>マイク確認</button>
+          <button id="playRecordButton" disabled class="pulse"><i class="fas fa-play icon"></i><i class="fas fa-microphone icon"></i>再生 & 録音</button>
+          <button id="descriptionButton"><i class="fas fa-info-circle icon"></i>ツールの説明</button>
+        </div>
+        <video id="videoPlayer" playsinline webkit-playsinline></video>
+        <div id="customControls" class="custom-controls">
+          <button id="playPauseButton"><i class="fas fa-play"></i></button>
+          <input type="range" id="seekBar" value="0" min="0" step="1">
+          <span id="currentTime">0:00</span> / <span id="totalTime">0:00</span>
+          <button id="muteButton"><i class="fas fa-volume-up"></i></button>
+          <input type="range" id="volumeBar" min="0" max="1" step="0.1" value="1">
+          <button id="fullscreenButton"><i class="fas fa-expand"></i></button>
+        </div>
+        <div id="status"></div>
+        <h3><i class="fas fa-headphones icon"></i>録音した音声</h3>
+        <div id="customAudioPlayer" class="custom-audio-player">
+          <button id="customPlayPauseButton" class="audio-control-button" aria-label="再生/一時停止">
+            <i class="fas fa-play"></i> 再生
+          </button>
+          <input type="range" id="customSeekBar" class="audio-seek-bar" value="0" min="0" step="1">
+          <span id="customCurrentTime" class="audio-time">0:00</span> / <span id="customTotalTime" class="audio-time">0:00</span>
+          <button id="customMuteButton" class="audio-control-button" aria-label="ミュート/ミュート解除">
+            <i class="fas fa-volume-up"></i> ミュート
+          </button>
+          <input type="range" id="customVolumeBar" class="audio-volume-bar" min="0" max="1" step="0.1" value="1">
+          
+          <!-- Container for Download Button -->
+          <div class="recorded-audio-controls">
+            <button id="downloadRecordedAudio" class="audio-control-button" title="録音した音声をダウンロード" aria-label="録音した音声をダウンロード">
+              <i class="fas fa-download"></i> ダウンロード
+            </button>
+          </div>
+        </div>
+      </div>
+      <div id="visualizerContainer">
+        <div class="visualizer-wrapper">
+          <canvas id="videoVisualizer" class="visualizer"></canvas>
+          <div class="visualizer-label">動画音声</div>
+        </div>
+        <div class="visualizer-wrapper">
+          <canvas id="micVisualizer" class="visualizer"></canvas>
+          <div class="visualizer-label">マイク入力</div>
+        </div>
+        <div class="visualizer-wrapper">
+          <canvas id="recordingVisualizer" class="visualizer"></canvas>
+          <div class="visualizer-label">録音音声</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="scriptContainer" class="container">
+      <h2><i class="fas fa-file-alt icon"></i>原稿表示</h2>
+      <div class="instructions">
+        <div class="step">
+          <div class="step-number">1</div>
+          <div>原稿ファイル（.txt, .pdf, .doc, .docx）をアップロードしてください</div>
+        </div>
+        <div class="step">
+          <div class="step-number">2</div>
+          <div>アップロードした原稿が下に表示されます</div>
+        </div>
+      </div>
+      <label class="file-upload" style="margin-bottom: 15px;">
+        <i class="fas fa-upload icon"></i>原稿をアップロード (.txt, .pdf, .doc, .docx)
+        <input type="file" id="scriptUpload" accept=".txt,.pdf,.doc,.docx">
+      </label>
+      <div id="scriptContent"></div>
+      <div id="pdfViewer"></div>
+    </div>
+    <div id="projectCredit">project by M.R.</div>
+  </div>
+
+  <div id="countdown"></div>
+  <button id="floatingButton"><i class="fas fa-play"></i></button>
+
+  <div id="descriptionModal" class="modal">
+    <div class="modal-content">
+      <span class="close-button">&times;</span>
+      <h2>ツールの説明</h2>
+      <p>
+        これは動画再生、音声録音、原稿表示を行うアプリです。ユーザーは動画をアップロードし、マイクへのアクセスを許可することで、録音を開始できます。また、原稿ファイル（.txt, .pdf, .doc, .docx）をアップロードして表示することも可能です。
+        <br><br>
+        <strong>※現在、iOSには対応しておりません。</strong>
+      </p>
+    </div>
+  </div>
+
 </body>
 </html>
